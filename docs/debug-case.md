@@ -1,6 +1,6 @@
 # A reproducible receive-only deadlock
 
-Source: a deliberately constructed regression workload in this repository's `make_workload("deadlock", ...)`, created during project development. This is not a vendor bug report, a discovered production failure, or a copied SDK trace.
+The `deadlock` workload constructs a simple protocol mistake: both endpoints wait to receive, and neither sends the first message.
 
 ```sh
 build/release/meshflow --workload deadlock --pes 2 --size 0 --compare-engines

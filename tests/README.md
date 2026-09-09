@@ -30,4 +30,6 @@ The mirrored program completes at tick 8 because lower-ID PE0 can free the slot 
 
 `fuzz.cpp` is a separate, larger seeded differential probe. Its agreement is additional evidence rather than an independent functional oracle.
 
-Run `make test` for core and CLI tests; `make sanitize` runs them under ASan/UBSan; `make fuzz` runs the additional probe. Recorded commands, toolchain identity and results belong in `docs/validation.md`; this file describes how the test evidence is constructed.
+`report_test.py` uses temporary copies of the recorded CSV and metadata. It checks that the original report is reproduced exactly, then removes trials, alters results and corrupts rows to check that incomplete or inconsistent measurements are rejected.
+
+Run `make test` for core, CLI and report tests; `make sanitize` runs the C++ binaries under ASan/UBSan and includes the Python checks; `make fuzz` runs the additional probe. Recorded commands, toolchain identity and results belong in `docs/validation.md`; this file describes how the test evidence is constructed.

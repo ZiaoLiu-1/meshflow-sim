@@ -1,6 +1,6 @@
 # 从八个函数读懂 MeshFlow
 
-这是一份工程阅读路线，不是已完成的个人验收记录。下面八个问题全部为 **未验收**；可按“先预测 → 运行 → 只改一个条件 → 独立完成 → 复述”的顺序回来学习。无需先理解真实 WSE 才能解释这个自定义模型。
+可以先从下面八个函数入手。读一段代码，预测一个小输入的结果，再运行验证；每次只改一个条件，会更容易看出规则是怎样起作用的。
 
 1. [`make_workload`](../src/workloads.cpp)：从输入构造指令和初始内存。scan 的输入在每个 PE 内存的前半段，输出在后半段，最后一格存截至该 PE 的总和。它生成 LOAD/ADD/STORE 和邻居 SEND/RECV，运行前没有把正确前缀和塞进去。**问题：把 5 个输入分给 3 个 PE 时，三个 chunk 各有几个数？**
 2. [`instruction_error`](../src/model.cpp)：在发起前检查指令实际使用的寄存器、内存下标和邻居编号；负数也必须拒绝。HALT 不使用操作数，不能误判其无关字段。**问题：为什么 SEND 不能把自己当成邻居？**
@@ -11,4 +11,4 @@
 7. [`difference`](../src/model.cpp)：依次比较终止原因、tick、PE 状态、完整内存、链路记录和 trace；checksum 只是方便查看，不能代替这些检查。**问题：最终 sum 一样但 RECV 的 sequence 不同，比较是否应该通过？**
 8. [`oracle_error`](../src/workloads.cpp)：用原始输入做简单的串行数学检查。scan 核对每个前缀，reduction 核对每个 PE 的累计总和，relay 核对每一跳保存的数据。**问题：为什么两个执行器互相一致仍然需要这层 oracle？**
 
-首次动手可运行 README 的 size=65 scan，再只把 `--capacity 1` 改成 `--capacity 2`，预测结果与 tick 是否会变化并检查输出。随后独立构造一个两 PE、两个消息的程序，画出每 tick 的 FIFO 和 in-flight 计数，再对照 goldens。读懂导读、成功运行或收到项目交付，都不自动代表会独立实现或已完成口述验收。
+首次动手可运行 README 的 size=65 scan，再只把 `--capacity 1` 改成 `--capacity 2`，预测结果与 tick 是否会变化并检查输出。随后构造一个两 PE、两个消息的程序，画出每 tick 的 FIFO 和 in-flight 计数，再对照 goldens。

@@ -1,0 +1,58 @@
+{
+  "recorded_utc": "2026-09-09T23:02:35.543312+00:00",
+  "base_commit": "c1766587777f74e646586d13fc67f63ef1468333",
+  "source_dirty": true,
+  "purpose": "CLI output error and benchmark report validation fixes; no new performance measurements",
+  "checks": [
+    {
+      "name": "release",
+      "command": [
+        "make",
+        "-j2",
+        "test"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "sanitize",
+      "command": [
+        "make",
+        "-j2",
+        "sanitize"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "source_sha256": {
+    "Makefile": "7a5ffefa21df6bee3bd54efdb579ae5543d533566fa6012c87c0f0eb7f4df792",
+    "include/meshflow/model.hpp": "55e46d40123fd0cc8442e27e1864a5715183b9c9c3f8924ff7d66cc8c18155c0",
+    "src/event_engine.cpp": "c92a08f240883798493364eeba218b038bab7893e39d24ce8c4f8f04ef8f3b46",
+    "src/main.cpp": "1d8c3cdabe3ed0d5ab2283605a9ec54168f632f2a78a1e5abc4bd8e42f72139a",
+    "src/model.cpp": "749108b652c2085012fab3d850e60b0975078e48553357d4e657b211919c89fc",
+    "src/tick_engine.cpp": "993118eed5a1f90a2cfb3dad188b242e08cb40b9a452309aca223f667be49931",
+    "src/workloads.cpp": "445a6f45ce4a5e2eb48bc57646f8cb29511061e01a862326d59e080e25e35f25",
+    "tests/cli_test.py": "b5f647bc3cee9bb2873a9f3be391e85370ccf30f41cdab4a0ee570335d172ca1",
+    "tests/fuzz.cpp": "8475c2811e2273b5916afe8cbb7663251b20e0a6b0d29e3fdf9b5a83a0ead364",
+    "tests/report_test.py": "1f3867d32c718625d86661142607c9f607d3719cfa4d9ff798228088e87440cb",
+    "tests/tests.cpp": "5ca8f13119d3893533e582b4122eeb57fbfe3bd71bf617afba6879c7775d1dc6",
+    "tools/benchmark.py": "0ac1ae4cb7509113131acc188a7fb54924f5276ad1d4685ca9ec55ba00b8b7e3",
+    "tools/report.py": "c6ad6c838e6fe28248a2af4d8087eb20074a5c23c68887f9365f405a0ec2dd1d",
+    "tools/sweep.py": "8a8d1a626e685e622a3888f613a168a69a42bce67f62e2a286aedc0a49bc709e"
+  },
+  "logs_sha256": {
+    "sanitize.txt": "2e971de0062d5a463f030f376a98d07a55480ee28af1d7a69bd4014a4771ecdd",
+    "release.txt": "0997024cfa5acb52c280ad422a0c35e3a279703352267de016fcdc4e1e024232"
+  },
+  "build_sha256": {
+    "build/release/meshflow": "c3d2ec50e6ac443f0697ab4cdb69b27eaf6a68cbe1c0521e763ba9f93dce2ca3",
+    "build/release/meshflow-tests": "c8fedd88b156b77290daead435839eeeb68b55ac86ffab30e2806c44fa53ca1f",
+    "build/release/config": "aeaf0a5b168e44525c1ef626ba1618910ecaf50150f4e0534122482524392ec5",
+    "build/sanitize/meshflow": "d904cc2bcc03b85aecde80660eb07ded097fdbdfe5e614883e271bccf735b6b2",
+    "build/sanitize/meshflow-tests": "f6c6fbba674549eaaed10c9e04c54cb926340ab5256e677c3b715e75742af3ae",
+    "build/sanitize/meshflow-fuzz": "ac66c28e3df8a3c37832d516c8eade62cd12a394205bb997bfe9a4e82ef3735a",
+    "build/sanitize/config": "b759df6a69f5d054690669057365a4fc4038314a3d3a8e1ddc35ba81a70fa682"
+  },
+  "compiler": "Apple clang version 17.0.0 (clang-1700.0.13.5)",
+  "python": "3.14.3",
+  "platform": "macOS-15.5-arm64-arm-64bit-Mach-O"
+}

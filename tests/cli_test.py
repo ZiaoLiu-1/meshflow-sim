@@ -203,6 +203,21 @@ class CLITest(unittest.TestCase):
             self.assertIn("trace", result.stderr)
             self.assertFalse(path.exists())
 
+    def test_stdout_io_failure_is_nonzero(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "readonly"
+            path.write_text("")
+            with path.open("r") as stream:
+                for args in ([], ["--help"]):
+                    with self.subTest(args=args):
+                        CLITest.invocations += 1
+                        result = subprocess.run(
+                            [EXECUTABLE, *args], stdout=stream, stderr=subprocess.PIPE,
+                            text=True, timeout=20,
+                        )
+                        self.assertEqual(result.returncode, 2, result.stderr)
+                        self.assertIn("cannot write", result.stderr)
+
     @classmethod
     def tearDownClass(cls):
         print(f"CLI subprocess invocations={cls.invocations}")

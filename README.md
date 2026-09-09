@@ -1,60 +1,51 @@
 # MeshFlow Sim
 
-A compact C++20 simulator for neighboring processing elements with local memory, finite message FIFOs, and explicit operation latencies. Two independently implemented schedulers execute the same machine: a readable tick loop and a priority-queue event engine that skips idle model time.
+A small C++20 simulator that runs integer programs on a row of processing elements. Each PE has its own registers and memory, and sends messages to its neighbors through bounded queues.
 
-The project focuses on simulator correctness and explainable performance. It does not implement a Cerebras ISA or predict WSE hardware timing. All results are from this custom CPU-hosted model.
+The same program can run one tick at a time or through an event queue that skips idle time. Keeping both implementations makes it possible to check their results against each other and measure when the extra scheduling machinery pays off. Relay, prefix scan and reduction provide a few programs to try.
 
 ## Build and run
 
-Requires a C++20 compiler, Make, and Python 3.10+ for the test/measurement scripts; no third-party library, SDK, GPU, network, or paid service is required.
+You need a C++20 compiler, Make and Python 3.10 or newer. The simulator has no external library or device dependency.
 
 ```sh
 make -j2
-make test
 build/release/meshflow --workload scan --pes 4 --size 65 --seed 7 --compare-engines
 build/release/meshflow --workload relay --pes 3 --size 12 --capacity 1 --trace build/relay.jsonl
 build/release/meshflow --workload reduction --pes 8 --size 103 --compare-engines
-make sanitize
+make test
 ```
 
-The CLI prints JSONL. Exit 0 means the selected engine completed and passed the serial oracle. With `--compare-engines`, it also requires equal complete machine state, link message histories and, by default, committed trace. Exit 1 is a model or verification failure; exit 2 is invalid input or an I/O failure. `--help` lists bounds and latency controls.
+Each run prints a JSON result with the simulated time, instruction count and verification status. `--compare-engines` checks registers, memory, program counters, message histories and the committed trace. It also checks the workload against a serial reference. `--help` lists the size and latency options.
 
-## What is implemented
+## How it works
 
-- PC, eight int32 registers, configurable local memory, and explicit busy/blocked/halted/faulted PE states.
-- Seven checked instructions: CONST, LOAD, STORE, ADD, SEND, RECV, HALT. ADD rejects overflow.
-- Directed neighbor FIFOs with send-time capacity reservations, ordered sequence IDs, and completion-time delivery.
-- Independent tick and event issue/completion/termination code; shared types and small pure validation/arithmetic helpers.
-- Generated relay, inclusive scan and chunked reduction programs. Serial oracles consume original inputs after simulation.
-- Full-state/trace comparison, hand-worked goldens, deterministic sweeps, malformed-program fuzzing, ASan/UBSan, and raw CPU measurement tooling.
+A PE executes one instruction at a time from a seven-instruction set: CONST, LOAD, STORE, ADD, SEND, RECV and HALT. Registers and memory hold int32 values; invalid operands and overflowing addition stop the run with a fault.
 
-The exact issue order matters: completions apply first, then PEs issue in increasing ID. A sender may wait one more tick if a later receiver frees a slot after that sender's turn. [SPEC.md](SPEC.md) makes this behavior executable and testable.
+Sending reserves a queue slot immediately, but the message becomes visible only when the send completes. A receive waits for a visible message and frees its slot when it starts. At each tick, all completions happen before PEs issue their next instructions in ID order. That order is intentional: a sender can wait an extra tick if a later receiver frees a slot after its turn.
 
-## Reproduce validation and measurements
+The tick and event engines have separate transition code. They share the model types and small validation helpers. [SPEC.md](SPEC.md) defines the timing rules, and [design.md](docs/design.md) follows a message through the two schedulers.
+
+## Tests and measurements
 
 ```sh
-python3 tools/sweep.py --binary build/release/meshflow --output build/sweep.jsonl
+make sanitize
 make fuzz
-# Benchmark requires an atomic shared lock directory; choose the same path for competing runs.
+python3 tools/sweep.py --binary build/release/meshflow --output build/sweep.jsonl
 python3 tools/benchmark.py --binary build/release/meshflow --lock-dir /tmp/meshflow-measure.lock --output benchmarks/raw/local-run
 python3 tools/report.py --input benchmarks/raw/local-run/raw.csv
 ```
 
-Benchmarks use Release builds, in-process warmups, alternating engine order, successful oracle checks and matched model outputs. `elapsed_ns` includes engine construction/execution/result allocation; it excludes workload generation, oracle/comparison and JSON output. Peak RSS is the **whole process** high-water mark, including program generation and warmups. Simulated ticks and CPU nanoseconds are separate quantities. Dense-event scheduling can cost more than scanning; there is no required speedup target.
+Hand-calculated cases check timing and queue behavior; seeded sweeps compare the engines; serial references check the algorithms. See [tests/README.md](tests/README.md) for coverage and a worked two-message example.
 
-Actual machine, compiler, test outcomes, source identities, raw results and limitations are recorded in [validation](docs/validation.md). GitHub Actions is defined as manual-only and disabled in this private repository to prevent unapproved cloud charges; a workflow file is not evidence of a cloud CI pass.
+The recorded Apple M2 runs show the tradeoff: skipping idle ticks helps with long operation latencies, while heap overhead can make dense workloads slower. [Results and raw data](docs/validation.md) include both outcomes. Elapsed time measures `engine.run`; peak RSS covers the whole process, including program generation and warmups. Use a shared lock path when running competing benchmarks.
 
-## Read the code
+## When a run fails
 
-| Entry | Purpose |
-| --- | --- |
-| [SPEC.md](SPEC.md) / [design](docs/design.md) | Timing, resources, states and failure semantics |
-| [model.hpp](include/meshflow/model.hpp) | Small public machine interface |
-| [tick_engine.cpp](src/tick_engine.cpp) / [event_engine.cpp](src/event_engine.cpp) | Independent execution paths |
-| [tests](tests/tests.cpp) | Hand-calculated state/trace and differential checks |
-| [debug case](docs/debug-case.md) | Reproduce and reason about a constructed deadlock |
-| [中文代码导读](docs/walkthrough-zh.md) | Eight key functions and one question for each |
-| [Cerebras mapping](docs/cerebras-mapping.md) | Public architecture concepts and project simplifications |
-| [STATE.md](STATE.md) / [evidence provenance](docs/resume-evidence.md) | Delivery status, sources and unassessed personal understanding |
+- Exit 1 means a model or verification failure; stderr includes a replay command. The [deadlock example](docs/debug-case.md) is a useful starting point.
+- `model_limit` means the run needs more simulated time. Check the program and latency settings before raising `--max-ticks`.
+- Exit 2 means invalid arguments or an I/O error. Check `--help`, including the workload size limits.
+- A trace path needs an existing parent directory. A new file is written for the final measured run.
+- Sweep and benchmark outputs must use a new path. An existing lock belongs to another run and is left intact.
 
-Scope deliberately stays small: one host thread, one-dimensional neighbor links, unrolled integer programs, one in-flight instruction per PE. No parser/compiler, out-of-order execution, hardware pipeline, cache coherence or device SDK is included.
+This is a custom model running on one host thread, with a one-dimensional topology and no instruction pipeline. Model ticks do not represent WSE hardware cycles. The [Cerebras correspondence](docs/cerebras-mapping.md) explains the architectural inspiration and simplifications; the [中文代码导读](docs/walkthrough-zh.md) walks through the main functions.

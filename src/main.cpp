@@ -76,6 +76,8 @@ int main(int argc, char** argv) {
                              "Trace enabled for --trace/--compare-engines unless --no-trace.\n"
                              "Trace file is replaced and records only the final measured run.\n"
                              "Exit: 0 verified completion, 1 model/oracle/differential failure, 2 usage/IO.\n";
+                std::cout.flush();
+                if (!std::cout) throw std::runtime_error("cannot write help output");
                 return 0;
             }
             if (flag == "--compare-engines") { compare = true; continue; }
@@ -138,6 +140,8 @@ int main(int argc, char** argv) {
                       << ",\"pe_checks\":" << r.stats.pe_checks << ",\"elapsed_ns\":" << elapsed
                       << ",\"peak_rss_bytes\":" << rss << ",\"checksum\":" << checksum(r)
                       << ",\"diagnostic\":" << json_string(r.diagnostic) << ",\"error\":" << json_string(error) << "}\n";
+            std::cout.flush();
+            if (!std::cout) throw std::runtime_error("cannot write result output");
             if (!error.empty()) {
                 std::cerr << error << "\nreplay: meshflow --workload " << workload << " --engine " << engine
                           << " --pes " << pes << " --size " << size << " --seed " << seed << " --capacity " << config.capacity

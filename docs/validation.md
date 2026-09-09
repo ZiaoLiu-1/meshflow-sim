@@ -1,6 +1,16 @@
 # Executed validation
 
-Validated implementation commit: **`ce46b7de73709d56456e5be4e8467487d12e1d56`**. The implementation, tests, Make options and tooling are frozen at that revision; later commits add results and documentation. [Validation manifest](../benchmarks/raw/validation/manifest.json) contains exact source SHA-256 values, Release/sanitizer binary hashes, actual build configurations and raw-log hashes. The source files were compared with the committed Git blobs when the manifest was created.
+## CLI and report fixes, September 9
+
+The CLI now returns exit 2 when writing a result or help text fails. The report tool checks that every CSV row matches its prevalidated workload and result, and requires the full set of trials and engine pairs. Missing cells, duplicate measurements and incorrect engine order are rejected before calculating a summary.
+
+`make -j2 test` passed 757 core cases with 114,898 checks, 14 CLI methods with 56 process invocations, and 11 report tests. `make -j2 sanitize` passed the same suites plus 40,000 program differentials and 624 workload cases with ASan/UBSan recovery disabled. The [source hashes and check results](../benchmarks/raw/validation-20260909-cleanup/manifest.json), [Release log](../benchmarks/raw/validation-20260909-cleanup/release.txt) and [sanitizer log](../benchmarks/raw/validation-20260909-cleanup/sanitize.txt) record this revision separately.
+
+These changes do not alter either engine. No new performance measurements were taken. The original CSV still produces exactly the recorded report.
+
+## Original measurement revision
+
+The results below were recorded at source commit **`ce46b7de73709d56456e5be4e8467487d12e1d56`**. The [validation manifest](../benchmarks/raw/validation/manifest.json) identifies that revision's sources, compiler options, binaries and logs. It is a record of that run, rather than a manifest for later source revisions.
 
 Host: Apple M2, arm64, 8 GiB RAM, Darwin 24.5.0 (macOS), Apple Clang 17.0.0 (`clang-1700.0.13.5`), Python 3.14.3. Runs occurred on **2026-09-09 UTC / 2026-09-08 America/Toronto**. No SDK, vendor simulator or device was used.
 
@@ -17,11 +27,9 @@ Counts describe different harness layers and **must not be added into a count of
 
 Release flags are `-std=c++20 -Wall -Wextra -Wpedantic -Wconversion -Wshadow -Werror -O3 -DNDEBUG`. Sanitizer builds replace the optimization flags with `-O1 -g -fno-omit-frame-pointer` and add `-fsanitize=address,undefined -fno-sanitize-recover=all`. The Makefile records compiler/options in each build directory and invalidates objects when those options change.
 
-Independent review found and verified corrections for warmup model failures incorrectly returning usage exit 2, empty trace paths being treated as no trace request, sanitizer recovery allowing a diagnostic without failure, and stale script invocation syntax in the README/manual workflow. No project UB was observed. Initial exploratory sanitizer runs preceded the fail-closed policy; the retained final log uses the corrected policy. [Review record](review.md) distinguishes author and non-author checks.
-
 ## CPU experiment
 
-First, an [instrumented TickEngine baseline profile](../benchmarks/raw/profile-tick-20260909.json) ran the same scan at P=4/N=2048. Changing only latencies increased its clock visits from **7,698 to 738,881**, with **12,311 committed instructions** in both. This identified idle tick scanning as the work to remove. This is scheduler instrumentation, not a sampled CPU hotspot profile. The approved design already required an event executor; idle-time skipping was the sole optimization comparison, and no unrelated micro-optimization was added.
+The [TickEngine baseline profile](../benchmarks/raw/profile-tick-20260909.json) ran the same scan at P=4/N=2048. Changing only latencies increased its clock visits from **7,698 to 738,881**, with **12,311 committed instructions** in both. The event engine avoids most of these idle visits. These counts come from scheduler instrumentation, rather than sampled CPU profiling.
 
 Then run, under the shared local measurement lock:
 
@@ -30,7 +38,7 @@ python3 tools/benchmark.py --binary build/release/meshflow --lock-dir /tmp/meshf
 python3 tools/report.py --input benchmarks/raw/local-run/raw.csv
 ```
 
-The `/tmp` lock shown here is a portable reproduction path. The actual coordinated run used the workspace's designated shared lock and respected the other project's no-compilation window. That private coordination path is intentionally not persisted in the result metadata. The immediate pre-profile process-name check found no clang/cc1/ninja/cmake/g++/c++/make process. The 8-logical-CPU workstation had load averages approximately **4.84 / 4.69 / 4.07** at measurement start and finish; ordinary applications remained active.
+Use the same lock path for competing runs. No compiler or build process was active during the recorded measurement window. The 8-logical-CPU workstation had load averages approximately **4.84 / 4.69 / 4.07** at measurement start and finish; ordinary applications remained active.
 
 Actual run: **84 measured rows / 42 pairs / six full-state prevalidations** passed. Each measured process warms its selected engine twice, records one run, and verifies the serial oracle. Engine order alternates per trial. Every measured pair must match its prevalidation's checksum, simulated ticks and committed instructions; prevalidation already compared the full architecture. Tracing is disabled equally for both engines.
 
@@ -49,8 +57,7 @@ Latency triples are compute/memory/link **model ticks**. The ratio uses unrounde
 
 ## Scope not exercised
 
-- Linux GCC/Clang: not run in the current recorded validation. The local `g++` name is Apple Clang, not evidence of GCC coverage. Other remote projects own their heavy-build windows; this delivery does not label a configured Linux job as passed.
-- GitHub-hosted CI: **not run**. The workflow is manual-only and repository Actions is disabled to avoid unapproved cloud charges.
-- TSan: not applicable to this single-host-thread engine; no artificial parallel execution was added.
+- Linux GCC/Clang: not run in these records. The local `g++` name resolves to Apple Clang.
+- GitHub-hosted CI: not run. The workflow is manual-only and repository Actions is disabled.
+- TSan: not run; the simulator uses one host thread.
 - Vendor ISA compatibility, WSE timing, real accelerator execution and hardware performance: outside the implemented model.
-- Personal independent implementation, oral understanding and learning mastery: **not assessed**. See [evidence provenance](resume-evidence.md).

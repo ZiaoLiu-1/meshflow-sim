@@ -35,6 +35,7 @@ fuzz: $(BUILD)/meshflow-fuzz
 test: all
 	$(BUILD)/meshflow-tests
 	$(PYTHON) tests/cli_test.py $(BUILD)/meshflow
+	$(PYTHON) tests/report_test.py
 sanitize:
 	$(MAKE) test fuzz BUILD=build/sanitize OPT='-O1 -g -fno-omit-frame-pointer' SAN='-fsanitize=address,undefined -fno-sanitize-recover=all'
 clean:

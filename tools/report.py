@@ -10,8 +10,36 @@ import sys
 
 GROUP = ("scenario", "workload", "pes", "size", "seed", "capacity", "compute_latency",
          "memory_latency", "link_latency", "max_ticks")
-NUMERIC = ("trial", "elapsed_ns", "simulated_ticks", "instructions", "scheduler_events",
+NUMERIC = ("trial", "position", "elapsed_ns", "simulated_ticks", "instructions", "scheduler_events",
            "clock_steps", "pe_checks", "peak_rss_bytes", "checksum")
+STATE = ("checksum", "simulated_ticks", "instructions")
+REQUIRED = set(GROUP + NUMERIC) | {
+    "pair_verified", "verified", "termination", "trace_enabled", "engine",
+    "phase", "compared", "repeat", "diagnostic", "error",
+}
+
+
+def expected_runs(metadata):
+    count = metadata.get("trials")
+    checks = metadata.get("prevalidations")
+    if type(count) is not int or not 1 <= count <= 10000:
+        raise ValueError("metadata has an invalid trial count")
+    if not isinstance(checks, list) or not checks:
+        raise ValueError("metadata has no prevalidated workloads")
+    expected = {}
+    for check in checks:
+        if not isinstance(check, dict) or not isinstance(check.get("result"), dict):
+            raise ValueError("invalid prevalidation record")
+        result = check["result"]
+        if (result.get("verified") is not True or result.get("compared") is not True
+                or result.get("termination") != "completed"
+                or any(type(result.get(key)) is not int or result[key] < 0 for key in STATE)):
+            raise ValueError("metadata includes an unsuccessful prevalidation")
+        group = tuple(str(check["scenario"] if key == "scenario" else result[key]) for key in GROUP)
+        if group in expected:
+            raise ValueError("duplicate prevalidated workload")
+        expected[group] = tuple(result[key] for key in STATE)
+    return expected, set(range(count))
 
 
 def report(path):
@@ -25,8 +53,11 @@ def report(path):
     provenance = metadata.get("provenance")
     if not isinstance(provenance, dict) or not provenance.get("source_sha256") or not provenance.get("binary_sha256"):
         raise ValueError("metadata is missing source/binary provenance")
+    expected, trial_ids = expected_runs(metadata)
     with path.open(newline="", encoding="utf-8") as stream:
         for row in csv.DictReader(stream):
+            if None in row or any(row.get(key) is None for key in REQUIRED):
+                raise ValueError("CSV row has missing or extra cells")
             if (row["pair_verified"] != "True" or row["verified"] != "True"
                     or row["termination"] != "completed" or row["trace_enabled"] != "False"
                     or row["engine"] not in ("tick", "event") or row["phase"] != "measured"
@@ -38,25 +69,26 @@ def report(path):
                 if row[field] < 0:
                     raise ValueError("CSV contains a negative metric")
             group = tuple(row[key] for key in GROUP)
+            if group not in expected:
+                raise ValueError("CSV workload does not match a prevalidation")
+            if tuple(row[key] for key in STATE) != expected[group]:
+                raise ValueError("CSV model result differs from its prevalidation")
+            first = "tick" if row["trial"] % 2 == 0 else "event"
+            if row["position"] != (0 if row["engine"] == first else 1):
+                raise ValueError("CSV does not follow the recorded alternating engine order")
             pair = groups[group][row["trial"]]
             if row["engine"] in pair:
                 raise ValueError("duplicate engine/trial row")
             pair[row["engine"]] = row
-    if not groups:
-        raise ValueError("CSV has no measurements")
+    if set(groups) != set(expected):
+        raise ValueError("CSV is missing prevalidated workloads")
     timing, work = [], []
     for group, trials in sorted(groups.items()):
-        identity = None
+        if set(trials) != trial_ids:
+            raise ValueError("CSV trial IDs do not match the metadata trial count")
         for pair in trials.values():
             if set(pair) != {"tick", "event"}:
                 raise ValueError("unpaired measurement")
-            if any(pair["tick"][key] != pair["event"][key]
-                   for key in ("checksum", "simulated_ticks", "instructions")):
-                raise ValueError("paired measurements have different model results")
-            current = tuple(pair["tick"][key] for key in ("checksum", "simulated_ticks", "instructions"))
-            if identity is not None and current != identity:
-                raise ValueError("repeated trials have different model results")
-            identity = current
         records = {engine: [pair[engine] for pair in trials.values()] for engine in ("tick", "event")}
         times = {engine: [row["elapsed_ns"] / 1e6 for row in rows] for engine, rows in records.items()}
         if median(times["event"]) <= 0:
@@ -97,7 +129,7 @@ def main():
             with args.output.open("x", encoding="utf-8") as stream:
                 stream.write(content)
         else:
-            print(content, end="")
+            print(content, end="", flush=True)
         return 0
     except (OSError, ValueError, KeyError) as error:
         print(f"report: {error}", file=sys.stderr)

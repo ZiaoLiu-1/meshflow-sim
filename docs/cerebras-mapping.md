@@ -20,4 +20,4 @@ gem5's [event-driven programming tutorial](https://www.gem5.org/documentation/le
 
 gem5's [SimpleCPU documentation](https://www.gem5.org/documentation/general_docs/cpu_models/SimpleCPU) distinguishes atomic memory accesses with latency estimates from timing accesses that wait for a response. Our inference is that model detail and host execution cost need separate descriptions. MeshFlow's tick and event executors implement the **same timed contract**; they are not counterparts to those two gem5 CPU models.
 
-These sources establish terminology and context only. This repository contains no private SDK, vendor binaries, imported simulator traces, or reused MeshCompact measurements. Verified project behavior and personal understanding are recorded separately in [resume evidence](resume-evidence.md).
+The sources provide architectural context. MeshFlow uses its own instruction set and timing rules and runs without a vendor SDK. Its [measurements](validation.md) describe the host cost of this model.
