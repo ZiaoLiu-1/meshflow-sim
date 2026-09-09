@@ -1,0 +1,21 @@
+name: C++ model validation (manual; Actions disabled by default)
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  correctness:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            compiler: g++
+          - os: ubuntu-latest
+            compiler: clang++
+          - os: macos-latest
+            compiler: clang++
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: make -j2 test CXX=${{ matrix.compiler }}
+      - run: make sanitize CXX=${{ matrix.compiler }}
+      - run: python3 tools/sweep.py --binary build/release/meshflow --output build/sweep.jsonl
