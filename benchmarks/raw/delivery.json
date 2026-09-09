@@ -1,0 +1,14 @@
+{
+  "actions_enabled": false,
+  "cloud_workflow_runs": 0,
+  "delivered_results_commit": "237677ba26cda43658e4e02db321c3725b784979",
+  "git_tree": "f13e524623cc09a417f8bbf308ac8aed42ed600f",
+  "note": "This receipt precedes its own documentation-only commit; final main readback is recorded in task handoff.",
+  "private": true,
+  "remote_tree_matches_local": true,
+  "repository": "https://github.com/ZiaoLiu-1/meshflow-sim",
+  "source_commit": "ce46b7de73709d56456e5be4e8467487d12e1d56",
+  "tracked_files": 37,
+  "verified_utc": "2026-09-09T01:41:28.249240+00:00",
+  "worktree_clean_before_receipt": true
+}

@@ -1,6 +1,6 @@
 # Project evidence and attribution
 
-Repository: **https://github.com/ZiaoLiu-1/meshflow-sim** (private). Validated implementation commit: **`ce46b7de73709d56456e5be4e8467487d12e1d56`**. Later result/documentation commits preserve that exact implementation; `git log` and [STATE](../STATE.md) record delivery. This file is a project handoff, not authorization to change the workspace resume evidence ledger.
+Repository: **https://github.com/ZiaoLiu-1/meshflow-sim** (private). Validated implementation commit: **`ce46b7de73709d56456e5be4e8467487d12e1d56`**; delivered results commit: **`237677ba26cda43658e4e02db321c3725b784979`**. The [remote readback receipt](../benchmarks/raw/delivery.json) verifies matching Git trees, private visibility, disabled Actions and zero cloud runs. Later handoff/documentation commits preserve that exact implementation; `git log` and [STATE](../STATE.md) record delivery. This file is a project handoff, not authorization to change the workspace resume evidence ledger.
 
 ## Implementation source and authorship
 

@@ -4,10 +4,10 @@ Updated: 2026-09-08 America/Toronto (2026-09-09 UTC).
 
 ## Goal and delivery
 
-- Actual persistent goal created for task `01a083ba-a2af-7af2-8490-23bfed1f62c9` at 2026-09-09 01:14:26 UTC after `get_goal` returned none. No token budget. Goal stays active until private-push/readback and final handoff finish.
-- Implementation and local acceptance: **complete**. Delivery push/readback: pending this result commit.
+- Actual persistent goal created for task `01a083ba-a2af-7af2-8490-23bfed1f62c9` at 2026-09-09 01:14:26 UTC after `get_goal` returned none. No token budget. Goal acceptance is **achieved**; the task marks the real goal complete after final private-branch readback.
+- Implementation, verification, measurement and private delivery: **complete**. Delivered results commit: **`237677ba26cda43658e4e02db321c3725b784979`**. [API/Git tree receipt](benchmarks/raw/delivery.json) verifies the private remote against this exact local commit; the later handoff commit contains only this receipt/status update.
 - Validated implementation commit: **`ce46b7de73709d56456e5be4e8467487d12e1d56`**. Result/documentation commits preserve these bytes; the validation manifest binds exact sources, tests, flags, binaries and logs.
-- Private repository: **https://github.com/ZiaoLiu-1/meshflow-sim**. Absent before creation; no existing repository overwritten. API readback confirms private visibility and disabled Actions. No cloud CI or paid service was run.
+- Private repository: **https://github.com/ZiaoLiu-1/meshflow-sim**. Absent before creation; no existing repository overwritten. API readback confirms private visibility, disabled Actions and **zero** cloud workflow runs. No paid service was run. Final branch identity is supplied in the task handoff.
 
 ## Verified implementation
 
