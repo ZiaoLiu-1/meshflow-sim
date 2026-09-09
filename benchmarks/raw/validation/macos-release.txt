@@ -1,0 +1,36 @@
+c++ -Iinclude -std=c++20 -Wall -Wextra -Wpedantic -Wconversion -Wshadow -Werror -O3 -DNDEBUG  -MMD -MP -c src/model.cpp -o build/release/model.o
+c++ -Iinclude -std=c++20 -Wall -Wextra -Wpedantic -Wconversion -Wshadow -Werror -O3 -DNDEBUG  -MMD -MP -c src/workloads.cpp -o build/release/workloads.o
+c++ -Iinclude -std=c++20 -Wall -Wextra -Wpedantic -Wconversion -Wshadow -Werror -O3 -DNDEBUG  -MMD -MP -c src/tick_engine.cpp -o build/release/tick_engine.o
+c++ -Iinclude -std=c++20 -Wall -Wextra -Wpedantic -Wconversion -Wshadow -Werror -O3 -DNDEBUG  -MMD -MP -c src/event_engine.cpp -o build/release/event_engine.o
+c++ -Iinclude -std=c++20 -Wall -Wextra -Wpedantic -Wconversion -Wshadow -Werror -O3 -DNDEBUG  -MMD -MP -c src/main.cpp -o build/release/main.o
+c++ -Iinclude -std=c++20 -Wall -Wextra -Wpedantic -Wconversion -Wshadow -Werror -O3 -DNDEBUG  -MMD -MP -c tests/tests.cpp -o build/release/tests.o
+c++ -Iinclude -std=c++20 -Wall -Wextra -Wpedantic -Wconversion -Wshadow -Werror -O3 -DNDEBUG  -MMD -MP -c tests/fuzz.cpp -o build/release/fuzz.o
+c++ build/release/model.o build/release/workloads.o build/release/tick_engine.o build/release/event_engine.o build/release/main.o  -o build/release/meshflow
+c++ build/release/model.o build/release/workloads.o build/release/tick_engine.o build/release/event_engine.o build/release/fuzz.o  -o build/release/meshflow-fuzz
+build/release/meshflow-fuzz
+PASS 40000 arbitrary-program differential cases (seed=5277971) and 624 workload oracle cases
+c++ build/release/model.o build/release/workloads.o build/release/tick_engine.o build/release/event_engine.o build/release/tests.o  -o build/release/meshflow-tests
+build/release/meshflow-tests
+cases=757 passed=757 failed=0 checks=114898
+python3 tests/cli_test.py build/release/meshflow
+test_deadlock_is_not_successful_engine_comparison (__main__.CLITest.test_deadlock_is_not_successful_engine_comparison) ... ok
+test_default_run_and_json_schema (__main__.CLITest.test_default_run_and_json_schema) ... ok
+test_every_workload_with_both_selected_engines (__main__.CLITest.test_every_workload_with_both_selected_engines) ... ok
+test_help (__main__.CLITest.test_help) ... ok
+test_invalid_arguments_are_usage_failures (__main__.CLITest.test_invalid_arguments_are_usage_failures) ... ok
+test_model_failure_during_warmup_keeps_model_exit_code (__main__.CLITest.test_model_failure_during_warmup_keeps_model_exit_code) ... ok
+test_model_limit_boundary_is_inclusive (__main__.CLITest.test_model_limit_boundary_is_inclusive) ... ok
+test_model_limit_is_distinct_from_deadlock (__main__.CLITest.test_model_limit_is_distinct_from_deadlock) ... ok
+test_no_trace_comparison_preserves_result (__main__.CLITest.test_no_trace_comparison_preserves_result) ... ok
+test_repeat_excludes_warmup_and_resets_run (__main__.CLITest.test_repeat_excludes_warmup_and_resets_run) ... ok
+test_single_pe_empty_inputs (__main__.CLITest.test_single_pe_empty_inputs) ... ok
+test_trace_io_failure_is_nonzero (__main__.CLITest.test_trace_io_failure_is_nonzero) ... ok
+test_trace_jsonl_matches_committed_count_and_is_replaced (__main__.CLITest.test_trace_jsonl_matches_committed_count_and_is_replaced) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.349s
+
+OK
+CLI subprocess invocations=54
+UTC 2026-09-09T01:29:11.421093+00:00
+Command: make -j2 test fuzz

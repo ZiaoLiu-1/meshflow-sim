@@ -1,0 +1,93 @@
+{
+  "artifact_sha256": {
+    "benchmarks/raw/validation/examples.jsonl": "436e9f3cd8e9af9fa2e224ec2be9fda4169bc73d1efdd499d3f3712e872f249b",
+    "benchmarks/raw/validation/macos-release.txt": "365bfb5bd39407160f241b0d6beb787bf591403c251c39d3e1557f26a43a10d6",
+    "benchmarks/raw/validation/macos-sanitize.txt": "625bf41cc9e7a1ed7457253d5c84b29935bdafafa5768696e347f37cf6157a1d",
+    "benchmarks/raw/validation/scan65-trace.jsonl": "6538317d20f022b0289b6f28780e25ce730eeb7e0ee4edc747374dfbed9eae68",
+    "benchmarks/raw/validation/sweep.jsonl": "72e81a571faf844738b3fd199ab4580ed668300b229d41f8217eb6bc524311f2"
+  },
+  "builds": {
+    "release": {
+      "binaries": {
+        "meshflow": "e0c4392f56b80f047cd5b7b6a67d4fcc3fd2ddad02f464093ea1667f3b833ee4",
+        "meshflow-fuzz": "d7b6f979d0d39c05503424ddca221584233d1149a5158143d5a4b9a5bc61155e",
+        "meshflow-tests": "c8fedd88b156b77290daead435839eeeb68b55ac86ffab30e2806c44fa53ca1f"
+      },
+      "config": "c++ -Iinclude -std=c++20 -Wall -Wextra -Wpedantic -Wconversion -Wshadow -Werror -O3 -DNDEBUG"
+    },
+    "sanitize": {
+      "binaries": {
+        "meshflow": "4d92ee6852e16a86ce75446240c602c1fe7bdb6717fc5edfdf21d164e210ecd5",
+        "meshflow-fuzz": "ccfb0b96f8c21bcbcbf4f412f0a39a7f90e72bc48740f7574eadc5b7ddbeb682",
+        "meshflow-tests": "de2d3c3ca8edfb113a3bcce9489e8fd39c1b7de4ee9517531ffbcd13af966b3a"
+      },
+      "config": "c++ -Iinclude -std=c++20 -Wall -Wextra -Wpedantic -Wconversion -Wshadow -Werror -O1 -g -fno-omit-frame-pointer -fsanitize=address,undefined -fno-sanitize-recover=all -fsanitize=address,undefined -fno-sanitize-recover=all"
+    }
+  },
+  "notes": [
+    "Receipt assembled from actual saved command outputs; not a fresh rerun.",
+    "Source and binary hashes bind the unchanged verified implementation; documentation may be committed afterward.",
+    "Counts are not combined into a claim of independent cases: matrices overlap."
+  ],
+  "platform": {
+    "compiler": "Apple clang version 17.0.0 (clang-1700.0.13.5)",
+    "cpu": "Apple M2",
+    "machine": "arm64",
+    "memory_bytes": 8589934592,
+    "os": "Darwin",
+    "python": "3.14.3",
+    "release": "24.5.0"
+  },
+  "recorded_utc": "2026-09-09T01:33:47.603727+00:00",
+  "runs": [
+    {
+      "arbitrary_fuzz_cases": 40000,
+      "cases": 757,
+      "checks": 114898,
+      "cli_invocations": 54,
+      "cli_methods": 13,
+      "command": "make -j2 test fuzz",
+      "exit_code": 0,
+      "fuzz_workload_cases": 624,
+      "log": "benchmarks/raw/validation/macos-release.txt"
+    },
+    {
+      "arbitrary_fuzz_cases": 40000,
+      "cases": 757,
+      "checks": 114898,
+      "cli_invocations": 54,
+      "cli_methods": 13,
+      "command": "make -j2 sanitize",
+      "exit_code": 0,
+      "fuzz_workload_cases": 624,
+      "log": "benchmarks/raw/validation/macos-sanitize.txt",
+      "recover_on_sanitizer_error": false
+    },
+    {
+      "cases": 540,
+      "command": "python3 tools/sweep.py --binary build/release/meshflow --output benchmarks/raw/validation/sweep.jsonl",
+      "exit_code": 0,
+      "trace_compared": true
+    }
+  ],
+  "schema_version": 1,
+  "source_commit": "ce46b7de73709d56456e5be4e8467487d12e1d56",
+  "source_matches_commit": true,
+  "source_sha256": {
+    "Makefile": "f51fd66fee43ea2e3b2f55a854afc186847b1454b66ebb78d1f49ed5f243b7a5",
+    "SPEC.md": "ca9b11771cbd114c1383ba0391ddfbf16b9a3c82d645fed85fdd4c424d3b0e4c",
+    "include/meshflow/model.hpp": "55e46d40123fd0cc8442e27e1864a5715183b9c9c3f8924ff7d66cc8c18155c0",
+    "src/event_engine.cpp": "c92a08f240883798493364eeba218b038bab7893e39d24ce8c4f8f04ef8f3b46",
+    "src/main.cpp": "4c0c816f3458cd3ff9076185fb618e5394ee755b4a831b4471660f18a44e9afc",
+    "src/model.cpp": "749108b652c2085012fab3d850e60b0975078e48553357d4e657b211919c89fc",
+    "src/tick_engine.cpp": "993118eed5a1f90a2cfb3dad188b242e08cb40b9a452309aca223f667be49931",
+    "src/workloads.cpp": "445a6f45ce4a5e2eb48bc57646f8cb29511061e01a862326d59e080e25e35f25",
+    "tests/README.md": "f95b75e84c01a2476ba55a05c03e67e6966eb307bcdead989c33e99bb402dc3d",
+    "tests/cli_test.py": "e47b4d042b3c0a204707871427f0d814593580eb33a8de1e104094c623cd6d16",
+    "tests/fuzz.cpp": "8475c2811e2273b5916afe8cbb7663251b20e0a6b0d29e3fdf9b5a83a0ead364",
+    "tests/tests.cpp": "5ca8f13119d3893533e582b4122eeb57fbfe3bd71bf617afba6879c7775d1dc6",
+    "tools/benchmark.py": "0ac1ae4cb7509113131acc188a7fb54924f5276ad1d4685ca9ec55ba00b8b7e3",
+    "tools/report.py": "9204eeb99a1503f98b0106d4f5dbaa2920f0ec427882f4d212e722903a496098",
+    "tools/sweep.py": "8a8d1a626e685e622a3888f613a168a69a42bce67f62e2a286aedc0a49bc709e"
+  }
+}
